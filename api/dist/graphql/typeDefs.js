@@ -1,4 +1,4 @@
-module.exports = `
+export const typeDefs = `
   type User {
     username: String!
     email: String!
