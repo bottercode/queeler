@@ -1,6 +1,4 @@
 import React from "react";
-import SearchIcon from "@mui/icons-material/Search";
-import Room from "./Room";
 import ChatBox from "./ChatBox";
 import ChatSideBar from "./ChatSideBar";
 

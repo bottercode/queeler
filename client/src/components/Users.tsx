@@ -1,11 +1,11 @@
 import React from "react";
 
-interface RoomProps {
+interface UserProps {
   profilePic: string;
   roomName: string;
 }
 
-const Room: React.FC<RoomProps> = ({ profilePic, roomName }) => {
+const Users: React.FC<UserProps> = ({ profilePic, roomName }) => {
   return (
     <div className="flex mb-4 ml-6">
       <img
@@ -18,4 +18,4 @@ const Room: React.FC<RoomProps> = ({ profilePic, roomName }) => {
   );
 };
 
-export default Room;
+export default Users;
