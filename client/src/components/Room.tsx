@@ -7,7 +7,7 @@ interface RoomProps {
 
 const Room: React.FC<RoomProps> = ({ profilePic, roomName }) => {
   return (
-    <div className="flex mb-4 ml-6">
+    <div className="flex mb-4 ml-6 relative">
       <img
         className="w-10 h-10 rounded-3xl"
         src={profilePic}
