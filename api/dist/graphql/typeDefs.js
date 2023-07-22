@@ -1,10 +1,11 @@
-export const typeDefs = `
+export default `
   type User {
+    id: ID!
     username: String!
-    email: String!
+    books: [Book!]!
   }
 
-  type Query{
-    getUsers: [User]!
+  extend type Query {
+    users: [User!]!
   }
 `;

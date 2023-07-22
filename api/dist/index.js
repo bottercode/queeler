@@ -1,28 +1,16 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { typeDefs } from "./graphql/typeDefs";
-import { resolvers } from "./graphql/resolver";
-import { db } from "./lib/db";
+import userTypeDefs from "./graphql/typeDefs";
+import { merge } from "lodash";
+import getUserResolver from "./graphql/resolver";
 import express from "express";
-import { getUserId } from "./utils/auth";
 const app = express();
+const baseTypeDefs = `type Query`;
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+    typeDefs: [baseTypeDefs, userTypeDefs],
+    resolvers: merge({}, getUserResolver),
 });
 const { url } = await startStandaloneServer(server, {
     listen: { port: 4000 },
-    context: async ({ req, res }) => {
-        const userId = req
-            ? await getUserId(req)
-            : res
-                ? getUserId(res.context)
-                : null;
-        return {
-            ...req,
-            db,
-            userId,
-        };
-    },
 });
 console.log(`🚀  Server ready at: ${url}`);

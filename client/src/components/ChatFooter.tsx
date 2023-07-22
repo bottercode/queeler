@@ -2,11 +2,27 @@ import React, { useState } from "react";
 import { SendIcon } from "lucide-react";
 import InputEmoji from "react-input-emoji";
 
-const ChatFooter: React.FC = () => {
+interface Message {
+  id: number;
+  text: string;
+}
+
+interface ChatFooterProps {
+  onSendMessage: (message: Message) => void;
+}
+
+const ChatFooter: React.FC<ChatFooterProps> = ({ onSendMessage }) => {
   const [text, setText] = useState("");
 
   function handleOnEnter(text: string) {
-    console.log("enter", text);
+    if (text.trim() !== "") {
+      const newMessage: Message = {
+        id: Date.now(),
+        text: text.trim(),
+      };
+      onSendMessage(newMessage);
+      setText("");
+    }
   }
   return (
     <div className="border-[#bdbbbb5f] bg-[#efefef] border-solid border-2 h-30 w-full bottom-0 p-2 rounded-b-3xl mt-auto absolute flex items-center">
@@ -20,7 +36,10 @@ const ChatFooter: React.FC = () => {
         />
       </div>
 
-      <SendIcon className="ml-2 text-gray-500" />
+      <SendIcon
+        className="ml-2 text-gray-500"
+        onClick={() => handleOnEnter(text)}
+      />
     </div>
   );
 };
