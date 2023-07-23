@@ -1,4 +1,6 @@
-export default {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = {
     Query: {
         getUsers: () => {
             const users = [
@@ -17,3 +19,4 @@ export default {
         },
     },
 };
+//# sourceMappingURL=resolver.js.map

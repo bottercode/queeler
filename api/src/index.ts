@@ -1,10 +1,26 @@
-import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { ApolloServer } from "apollo-server-express";
 import { typeDefs } from "./graphql/typeDefs";
-
+import express from "express";
+import cors from "cors";
+import cookieSession from "cookie-session";
+import passportfunc from "./lib/passport";
 import { PrismaClient } from "@prisma/client";
+import passport from "passport";
+import session from "express-session";
+const authRouter = require("./route/auth");
 
 export const prisma = new PrismaClient();
+const app = express();
+app.use(
+  session({
+    secret: "verysecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+passportfunc();
 
 (async function () {
   interface CreateUser {
@@ -34,14 +50,22 @@ export const prisma = new PrismaClient();
     },
   };
 
+  app.use(cors());
+  app.use("/auth", authRouter);
+
   const server = new ApolloServer({
     typeDefs,
     resolvers,
   });
 
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
-  });
+  await server.start();
 
-  console.log(`🚀 Server listening at: ${url}`);
+  server.applyMiddleware({ app });
+  const PORT = 4000;
+
+  app.listen({ port: PORT }, () =>
+    console.log(
+      `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
+    )
+  );
 })();
