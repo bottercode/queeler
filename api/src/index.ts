@@ -16,16 +16,7 @@ export const prisma = new PrismaClient();
 const app = express();
 const httpServer = http.createServer(app);
 
-app.use(
-  session({
-    secret: "verysecret",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-passportfunc();
+app.use(cors());
 
 (async function () {
   interface CreateUser {
@@ -34,6 +25,10 @@ passportfunc();
     password: string;
     email: string;
   }
+
+  type User = {
+    id?: string;
+  };
 
   const resolvers = {
     // Mutation: {
@@ -55,9 +50,6 @@ passportfunc();
     },
   };
 
-  app.use(cors());
-  app.use("/auth", authRouter);
-
   const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -73,6 +65,33 @@ passportfunc();
       context: async ({ req }) => ({ token: req.headers.token }),
     })
   );
+
+  app.use(
+    session({
+      secret: "verysecret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        sameSite: "none",
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // One Week
+      },
+    })
+  );
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  passport.serializeUser((user, done) => {
+    done(null, user);
+  });
+
+  passport.deserializeUser((user: User, done) => {
+    done(null, user);
+  });
+
+  passportfunc();
+
+  app.use("/auth", authRouter);
 
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: 4000 }, resolve)

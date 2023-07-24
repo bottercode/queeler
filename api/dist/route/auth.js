@@ -5,23 +5,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const passport_1 = __importDefault(require("passport"));
 const express_1 = __importDefault(require("express"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const router = express_1.default.Router();
-router.get("/failed", (req, res) => {
-    res.status(401).json({
-        success: false,
-        message: "failure",
-    });
-});
-router.get("/success", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: req.user,
-    });
-});
 router.get("/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
-router.get("/google/callback", passport_1.default.authenticate("google", {
-    successRedirect: "http://localhost:3000/chat",
-    failureRedirect: "http://localhost:3000",
-}));
+router.get("/google/callback", passport_1.default.authenticate("google", { failureRedirect: "http://localhost:3000" }), async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: req.user.emails[0].value },
+        });
+        if (user) {
+            const token = jsonwebtoken_1.default.sign({ user: user }, `${process.env.JWT_SECRET}`, {
+                expiresIn: "7days",
+            });
+            res.cookie("cookie", token);
+        }
+        else {
+            const newUser = await prisma.user.create({
+                data: {
+                    email: req.user.emails[0].value,
+                    name: req.user.displayName,
+                    avatar: req.user.photos[0].value,
+                },
+            });
+            console.log(newUser);
+            const token = jsonwebtoken_1.default.sign({ user: newUser }, `${process.env.JWT_SECRET}`, {
+                expiresIn: "7days",
+            });
+            res.cookie("cookie", token);
+        }
+    }
+    catch (error) {
+        console.log(error);
+    }
+    res.redirect("http://localhost:3000/chat");
+});
 module.exports = router;
 //# sourceMappingURL=auth.js.map

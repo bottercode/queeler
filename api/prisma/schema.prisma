@@ -15,6 +15,7 @@ model User {
   id               String    @id @default(uuid())
   name             String
   email            String    @unique
+  avatar           String?
   sentMessages     Message[] @relation("sentMessages")
   receivedMessages Message[] @relation("receivedMessages")
 }

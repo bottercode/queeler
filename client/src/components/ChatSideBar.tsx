@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "./ui/Input";
 import Room from "./Room";
 import Users from "./Users";
@@ -11,12 +11,52 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/DropdownMenu";
+import { myInfo } from "../lib/types";
+import jwt_decode from "jwt-decode";
+import { useNavigate } from "react-router";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
+import { json } from "body-parser";
 
 const ChatSideBar: React.FC = () => {
+  const [myInfo, setMyInfo] = useState<myInfo>({
+    user: {
+      id: "",
+      name: "Anonymous",
+      email: "",
+      avatar:
+        "https://fastly.picsum.photos/id/379/536/354.jpg?hmac=I4bs_0ZcfxuA6apwsLHEPAqDxBprHAwMwtdoK8oJCOU",
+    },
+
+    exp: 0,
+    iat: 0,
+  });
+  const navigate = useNavigate();
+  console.log(myInfo);
+
+  useEffect(() => {
+    const cookieString = document.cookie;
+    const cookies: any = {};
+    const cookieArray = cookieString.split(";");
+    console.log(cookieArray);
+    cookieArray.forEach((cookie) => {
+      const [key, value] = cookie.trim().split("=");
+      cookies[key] = value;
+    });
+    console.log(cookies);
+    const token = cookies.cookie;
+    console.log(token);
+    if (token) {
+      const decoded: myInfo = jwt_decode(token);
+      setMyInfo(decoded);
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const rooms = Array.from({ length: 8 }, (_, index) => index + 1);
   const users = Array.from({ length: 8 }, (_, index) => index + 1);
   return (
-    <aside className="w-80 bg-white min-h-screen rounded-l-3xl py-2 px-4 relative">
+    <aside className="w-80 bg-white min-h-screen rounded-l-3xl py-2 px-4 relative h-screen">
       <div className="flex bg-[#efefef] ml-1 mt-2 mb-2 rounded-xl border-gray-300">
         <Input
           placeholder="Search rooms and users"
@@ -26,57 +66,52 @@ const ChatSideBar: React.FC = () => {
         <Search className="mr-6 mt-2" />
       </div>
 
-      <div className=" mt-8">
-        <p className="font-[Inter] text-gray-500 font-bold mb-3 ml-3 ">Rooms</p>
-        <div className="overflow-y-auto max-h-[280px] no-scrollbar">
-          {rooms.map((roomNumber) => (
-            <Room
-              key={roomNumber}
-              profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
-              roomName={`Room ${roomNumber}`}
-            />
-          ))}
-        </div>
+      <p className="font-[Inter] text-gray-500 font-bold text-sm px-2">Rooms</p>
+
+      <div className="overflow-y-auto max-h-[33%] px-2 mt-2 no-scrollbar">
+        {rooms.map((roomNumber) => (
+          <Room
+            key={roomNumber}
+            profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
+            roomName={`Room ${roomNumber}`}
+          />
+        ))}
+      </div>
+      <hr></hr>
+      <p className="font-[Inter] text-gray-500 font-bold text-sm px-2 mt-4">
+        Users
+      </p>
+      <div className="overflow-y-auto max-h-[33%] px-2 mt-2 no-scrollbar">
+        {users.map((userNumber) => (
+          <Users
+            key={userNumber}
+            profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
+            roomName={`User ${userNumber}`}
+          />
+        ))}
       </div>
 
-      <hr className="mt-5 mb-5"></hr>
-      <div className="">
-        <p className="font-[Inter] text-gray-500 font-bold mt-3 ml-3 mb-3">
-          Users
-        </p>
-        <div className="overflow-y-auto no-scrollbar max-h-[280px]">
-          {users.map((userNumber) => (
-            <Users
-              key={userNumber}
-              profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
-              roomName={`User ${userNumber}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <hr className="mt-3"></hr>
+      <hr></hr>
 
       <div className="mt-2 h-[9%] absolute bottom-2 w-11/12 flex items-center justify-between text-black">
         <div className="flex items-center gap-2">
-          <img
-            className="w-10 h-10 border-2 border-black rounded-full"
-            src="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
-            alt="user-profile"
-          />
-          <p className="ml-3">Devansh Dwivedi</p>
+          <Avatar>
+            <AvatarImage src={myInfo.user.avatar} />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+          <p className="font-semibold text-gray-600">{myInfo.user.name}</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <p className="text-xs font-bold ml-12 mb-2">…</p>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <p className="text-xs font-bold mr-8 mb-2">…</p>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </aside>
   );
