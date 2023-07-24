@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
-    "start": "npm run compile && node ./dist/index.js"
+    "start": "npm run compile && node ./dist/index.js",
+    "dev": "nodemon --watch ./src --exec \"npm run start\""
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
     "lodash": "^4.17.21",
+    "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0"
   },

@@ -25,18 +25,6 @@ app.use(passport_2.default.session());
 (0, passport_1.default)();
 (async function () {
     const resolvers = {
-        Mutation: {
-            createUser: async (_parent, args) => {
-                return await exports.prisma.user.create({
-                    data: {
-                        email: args.email,
-                        name: args.name,
-                        password: args.password,
-                        username: args.username,
-                    },
-                });
-            },
-        },
         Query: {
             getAllUsers: async () => {
                 return await exports.prisma.user.findMany();

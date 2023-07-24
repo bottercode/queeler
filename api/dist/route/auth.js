@@ -18,10 +18,10 @@ router.get("/success", (req, res) => {
         message: req.user,
     });
 });
-router.get("/google", passport_1.default.authenticate("google", { scope: ["profile"] }));
+router.get("/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
 router.get("/google/callback", passport_1.default.authenticate("google", {
-    successRedirect: "http://localhost:3000",
-    failureRedirect: "/auth/failed",
+    successRedirect: "http://localhost:3000/chat",
+    failureRedirect: "http://localhost:3000",
 }));
 module.exports = router;
 //# sourceMappingURL=auth.js.map

@@ -11,14 +11,5 @@ exports.typeDefs = (0, graphql_tag_1.gql) `
   type Query {
     getAllUsers: [User!]!
   }
-
-  type Mutation {
-    createUser(
-      name: String
-      username: String
-      password: String
-      email: String
-    ): User
-  }
 `;
 //# sourceMappingURL=typeDefs.js.map

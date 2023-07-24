@@ -15,14 +15,37 @@ const passportfunc = () => {
         scope: ["profile", "email"],
         state: true,
     }, (accessToken, refreshToken, profile, done) => {
+        if (profile.id) {
+            const checkUser = async () => {
+                const res = await prisma.user.findUnique({
+                    where: {
+                        email: profile.emails[0].value,
+                    },
+                });
+                if (res) {
+                    console.log(res);
+                    return res;
+                }
+                else {
+                    const user = await prisma.user.create({
+                        data: {
+                            email: profile.emails[0].value,
+                            name: profile.displayName,
+                        },
+                    });
+                    console.log(user);
+                    return user;
+                }
+            };
+            checkUser();
+        }
         done(null, profile);
     }));
     passport_1.default.serializeUser((user, done) => {
-        console.log(user);
-        done(null, user);
+        done(null, user.id);
     });
-    passport_1.default.deserializeUser((user, done) => {
-        done(null, user);
+    passport_1.default.deserializeUser((id, done) => {
+        done(null, id);
     });
 };
 exports.default = passportfunc;

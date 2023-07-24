@@ -1,6 +1,5 @@
 import passport from "passport";
 import express from "express";
-import cookieSession from "cookie-session";
 
 const router = express.Router();
 
@@ -16,12 +15,15 @@ router.get("/success", (req, res) => {
     message: req.user,
   });
 });
-router.get("/google", passport.authenticate("google", { scope: ["profile"] }));
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    successRedirect: "http://localhost:3000",
-    failureRedirect: "/auth/failed",
+    successRedirect: "http://localhost:3000/chat",
+    failureRedirect: "http://localhost:3000",
   })
 );
 

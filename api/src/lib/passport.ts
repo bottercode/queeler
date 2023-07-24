@@ -3,6 +3,9 @@ import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+type User = {
+  id?: string;
+};
 
 const passportfunc = (): void => {
   passport.use(
@@ -20,42 +23,40 @@ const passportfunc = (): void => {
         profile: Profile,
         done: any
       ) => {
-        // if(profile.id){
-        //   async function () {
-        //     const res = await prisma.user.findUnique({
-        //       where: {
-        //         id: profile.id
-        //       }
-        //     })
-        //     if(res){
-        //       return res;
-        //     }
-        //     else{
-        //       const user = await prisma.user.create({
-        //         data: {
-        //           id: profile.id,
-        //           email: profile.emails![0].value,
-        //           name: profile.displayName,
-        //           username: profile.name!.givenName,
-        //           password: "google",
-        //         },
-        //       });
-        //       return user;
-        //     }
-        //   }
-        // }
+        if (profile.id) {
+          const checkUser = async () => {
+            const res = await prisma.user.findUnique({
+              where: {
+                email: profile.emails![0].value,
+              },
+            });
+            if (res) {
+              console.log(res);
+              return res;
+            } else {
+              const user = await prisma.user.create({
+                data: {
+                  email: profile.emails![0].value,
+                  name: profile.displayName,
+                },
+              });
+              console.log(user);
+              return user;
+            }
+          };
+          checkUser();
+        }
         done(null, profile);
       }
     )
   );
 
-  passport.serializeUser((user, done) => {
-    console.log(user);
-    done(null, user);
+  passport.serializeUser((user: User, done) => {
+    done(null, user.id);
   });
 
-  passport.deserializeUser((user: any, done) => {
-    done(null, user);
+  passport.deserializeUser((id: string, done) => {
+    done(null, id);
   });
 };
 
