@@ -4,7 +4,6 @@ import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { PubSub } from "graphql-subscriptions";
-import http from "http";
 import cors from "cors";
 import { json } from "body-parser";
 import passportfunc from "./lib/passport";
@@ -40,52 +39,50 @@ const httpServer = createServer(app);
   const resolvers = {
     Subscription: {
       messageSent: {
-        subscribe: () => pubsub.asyncIterator("messageSent"),
+        subscribe: async (_: any, args: any, context: any) => {
+          const { roomId } = args;
+          return pubsub.asyncIterator(`messageSent ${roomId}`);
+        },
       },
     },
 
     Mutation: {
-      createRoom: async (
-        _: any,
-        { name, description }: { name: string; description: string }
-      ) => {
+      createRoom: async (_: any, args: any) => {
+        const { name, description } = args;
         return await prisma.room.create({
           data: {
-            name: name,
-            description: description,
-          },
-          select: {
-            id: true,
-            name: true,
-            description: true,
+            name,
+            description,
           },
         });
       },
 
-      createMessage: async (
-        _: any,
-        {
-          body,
-          roomId,
-          senderId,
-        }: { body: string; roomId: string; senderId: string }
-      ) => {
-        const res = await prisma.message.create({
+      createMessage: async (_: any, args: any) => {
+        const { body, roomId, senderId } = args;
+        const mesRes = await prisma.message.create({
           data: {
-            body: body,
-            roomId: roomId,
-            senderId: senderId,
+            body,
+            senderId,
+            roomId,
+          },
+          select: {
+            id: true,
+            body: true,
+            sender: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            room: {
+              select: {
+                id: true,
+              },
+            },
           },
         });
-
-        pubsub.publish("messageSent", {
-          messageSent: {
-            body: body,
-            roomId: roomId,
-            senderId: senderId,
-          },
-        });
-        return res;
+        pubsub.publish(`messageSent ${roomId}`, { messageSent: mesRes });
+        return mesRes;
       },
     },
 

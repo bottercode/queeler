@@ -10,20 +10,20 @@ export const typeDefs = gql`
   type Message {
     id: String
     body: String
-    sender: User
+    senderId: String
     roomId: Room
   }
 
   type Room {
     id: String
     name: String
-    messages: [Message]
+    messages: [Message!]!
     description: String
   }
 
   type Query {
-    getAllUsers: [User]
-    getAllRooms: [Room]
+    getAllUsers: [User!]!
+    getAllRooms: [Room!]!
   }
 
   type Subscription {
