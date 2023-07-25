@@ -16,11 +16,6 @@ exports.typeDefs = (0, graphql_tag_1.gql) `
     roomId: Room
   }
 
-  # type CreateRoom {
-  #   name: String
-
-  # }
-
   type Room {
     id: String
     name: String

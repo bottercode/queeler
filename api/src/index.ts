@@ -3,6 +3,7 @@ import { typeDefs } from "./graphql/typeDefs";
 import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { PubSub } from "graphql-subscriptions";
 import http from "http";
 import cors from "cors";
 import { json } from "body-parser";
@@ -18,6 +19,7 @@ const authRouter = require("./route/auth");
 
 export const prisma = new PrismaClient();
 const app = express();
+const pubsub = new PubSub();
 
 app.use(cors());
 
@@ -38,13 +40,7 @@ const httpServer = createServer(app);
   const resolvers = {
     Subscription: {
       messageSent: {
-        subscribe: async (_: any, { roomId }: { roomId: string }) => {
-          return await prisma.message.findMany({
-            where: {
-              roomId: roomId,
-            },
-          });
-        },
+        subscribe: () => pubsub.asyncIterator("messageSent"),
       },
     },
 
@@ -65,6 +61,7 @@ const httpServer = createServer(app);
           },
         });
       },
+
       createMessage: async (
         _: any,
         {
@@ -73,13 +70,22 @@ const httpServer = createServer(app);
           senderId,
         }: { body: string; roomId: string; senderId: string }
       ) => {
-        return await prisma.message.create({
+        const res = await prisma.message.create({
           data: {
             body: body,
             roomId: roomId,
             senderId: senderId,
           },
         });
+
+        pubsub.publish("messageSent", {
+          messageSent: {
+            body: body,
+            roomId: roomId,
+            senderId: senderId,
+          },
+        });
+        return res;
       },
     },
 

@@ -9,6 +9,7 @@ const typeDefs_1 = require("./graphql/typeDefs");
 const express_1 = __importDefault(require("express"));
 const express4_1 = require("@apollo/server/express4");
 const drainHttpServer_1 = require("@apollo/server/plugin/drainHttpServer");
+const graphql_subscriptions_1 = require("graphql-subscriptions");
 const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = require("body-parser");
 const passport_1 = __importDefault(require("./lib/passport"));
@@ -22,19 +23,14 @@ const express_session_1 = __importDefault(require("express-session"));
 const authRouter = require("./route/auth");
 exports.prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
+const pubsub = new graphql_subscriptions_1.PubSub();
 app.use((0, cors_1.default)());
 const httpServer = (0, http_1.createServer)(app);
 (async function () {
     const resolvers = {
         Subscription: {
             messageSent: {
-                subscribe: async (_, { roomId }) => {
-                    return await exports.prisma.message.findMany({
-                        where: {
-                            roomId: roomId,
-                        },
-                    });
-                },
+                subscribe: () => pubsub.asyncIterator("messageSent"),
             },
         },
         Mutation: {
@@ -52,13 +48,21 @@ const httpServer = (0, http_1.createServer)(app);
                 });
             },
             createMessage: async (_, { body, roomId, senderId, }) => {
-                return await exports.prisma.message.create({
+                const res = await exports.prisma.message.create({
                     data: {
                         body: body,
                         roomId: roomId,
                         senderId: senderId,
                     },
                 });
+                pubsub.publish("messageSent", {
+                    messageSent: {
+                        body: body,
+                        roomId: roomId,
+                        senderId: senderId,
+                    },
+                });
+                return res;
             },
         },
         Query: {
