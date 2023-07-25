@@ -9,14 +9,19 @@ import { json } from "body-parser";
 import passportfunc from "./lib/passport";
 import { PrismaClient } from "@prisma/client";
 import passport from "passport";
+import { createServer } from "http";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 import session from "express-session";
 const authRouter = require("./route/auth");
 
 export const prisma = new PrismaClient();
 const app = express();
-const httpServer = http.createServer(app);
 
 app.use(cors());
+
+const httpServer = createServer(app);
 
 (async function () {
   interface CreateUser {
@@ -31,29 +36,86 @@ app.use(cors());
   };
 
   const resolvers = {
-    // Mutation: {
-    //   createUser: async (_parent: any, args: CreateUser) => {
-    //     return await prisma.user.create({
-    //       data: {1
-    //         email: args.email,
-    //         name: args.name,
-    //         password: args.password,
-    //         username: args.username,
-    //       },
-    //     });
-    //   },
-    // },
+    Subscription: {
+      messageSent: {
+        subscribe: async (_: any, { roomId }: { roomId: string }) => {
+          return await prisma.message.findMany({
+            where: {
+              roomId: roomId,
+            },
+          });
+        },
+      },
+    },
+
+    Mutation: {
+      createRoom: async (
+        _: any,
+        { name, description }: { name: string; description: string }
+      ) => {
+        return await prisma.room.create({
+          data: {
+            name: name,
+            description: description,
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        });
+      },
+      createMessage: async (
+        _: any,
+        {
+          body,
+          roomId,
+          senderId,
+        }: { body: string; roomId: string; senderId: string }
+      ) => {
+        return await prisma.message.create({
+          data: {
+            body: body,
+            roomId: roomId,
+            senderId: senderId,
+          },
+        });
+      },
+    },
+
     Query: {
       getAllUsers: async () => {
         return await prisma.user.findMany();
       },
+      getAllRooms: async () => {
+        return await prisma.room.findMany();
+      },
     },
   };
 
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: "/graphql/subscriptions",
+  });
+
+  const serverCleanup = useServer({ schema }, wsServer);
+
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    schema,
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
   });
 
   await server.start();
