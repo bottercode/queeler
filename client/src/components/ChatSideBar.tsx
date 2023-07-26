@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
 import { Input } from "./ui/Input";
-import Room from "./Room";
-import Users from "./Users";
-import { Search } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
+import { ScrollArea } from "./ui/ScrollArea";
+import { Separator } from "./ui/Separator";
+import { useEffect, useState } from "react";
+import jwt_decode from "jwt-decode";
+import { Room, myInfo } from "../lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,110 +13,110 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/DropdownMenu";
-import { myInfo } from "../lib/types";
-import jwt_decode from "jwt-decode";
+import { UserCard } from "./User";
 import { useNavigate } from "react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
-import { json } from "body-parser";
+import { gql, useQuery } from "@apollo/client";
+import { Settings2 } from "lucide-react";
 
-const ChatSideBar: React.FC = () => {
+export const Chatsidebar = ({
+  onSelectRoomChat,
+}: {
+  onSelectRoomChat: (roomId: string) => void;
+}) => {
   const [myInfo, setMyInfo] = useState<myInfo>({
     user: {
       id: "",
       name: "Anonymous",
       email: "",
       avatar:
-        "https://fastly.picsum.photos/id/379/536/354.jpg?hmac=I4bs_0ZcfxuA6apwsLHEPAqDxBprHAwMwtdoK8oJCOU",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Anonymous_emblem.svg/240px-Anonymous_emblem.svg.png",
     },
-
     exp: 0,
     iat: 0,
   });
+  const GET_ROOM = gql`
+    query GetAllRooms {
+      getAllRooms {
+        name
+        id
+        description
+      }
+    }
+  `;
+  const {
+    loading: roomsLoading,
+    error: roomsError,
+    data: roomsData,
+  } = useQuery(GET_ROOM);
+
+  const roomComp = roomsLoading ? (
+    <p>Loading...</p>
+  ) : roomsError ? (
+    <p>Error :</p>
+  ) : (
+    roomsData?.getAllRooms.map((room: Room) => {
+      return <UserCard key={room.id} roomData={room} />;
+    })
+  );
+
   const navigate = useNavigate();
   console.log(myInfo);
 
   useEffect(() => {
     const cookieString = document.cookie;
+    console.log(cookieString);
     const cookies: any = {};
     const cookieArray = cookieString.split(";");
-    console.log(cookieArray);
     cookieArray.forEach((cookie) => {
       const [key, value] = cookie.trim().split("=");
       cookies[key] = value;
     });
-    console.log(cookies);
-    const token = cookies.cookie;
-    console.log(token);
-    if (token) {
-      const decoded: myInfo = jwt_decode(token);
+    const jwtToken = cookies.cookie;
+    if (jwtToken) {
+      const decoded: myInfo = jwt_decode(jwtToken);
       setMyInfo(decoded);
     } else {
       navigate("/");
     }
   }, [navigate]);
 
-  const rooms = Array.from({ length: 8 }, (_, index) => index + 1);
-  const users = Array.from({ length: 8 }, (_, index) => index + 1);
   return (
-    <aside className="w-80 bg-white min-h-screen rounded-l-3xl py-2 px-4 relative h-screen">
-      <div className="flex bg-[#efefef] ml-1 mt-2 mb-2 rounded-xl border-gray-300">
-        <Input
-          placeholder="Search rooms and users"
-          type="search"
-          className="ml-4 bg-[#efefef] rounded-xl border-none font-[Inter] text-gray-500"
-        />
-        <Search className="mr-6 mt-2" />
-      </div>
-
-      <p className="font-[Inter] text-gray-500 font-bold text-sm px-2">Rooms</p>
-
-      <div className="overflow-y-auto max-h-[33%] px-2 mt-2 no-scrollbar">
-        {rooms.map((roomNumber) => (
-          <Room
-            key={roomNumber}
-            profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
-            roomName={`Room ${roomNumber}`}
-          />
-        ))}
-      </div>
-      <hr></hr>
-      <p className="font-[Inter] text-gray-500 font-bold text-sm px-2 mt-4">
-        Users
-      </p>
-      <div className="overflow-y-auto max-h-[33%] px-2 mt-2 no-scrollbar">
-        {users.map((userNumber) => (
-          <Users
-            key={userNumber}
-            profilePic="https://i.pinimg.com/236x/9c/f4/24/9cf424a731031f8066240ea8fc06d97c.jpg"
-            roomName={`User ${userNumber}`}
-          />
-        ))}
-      </div>
-
-      <hr></hr>
-
-      <div className="mt-2 h-[9%] absolute bottom-2 w-11/12 flex items-center justify-between text-black">
+    <aside className="w-80 bg-white h-screen rounded-l-3xl py-2 px-4 relative">
+      <Input
+        placeholder="Search rooms and users"
+        type="search"
+        className="bg-[#efefef] mt-2 rounded-xl text-black border-gray-300 placeholder:font-semibold placeholder:text-gray-500"
+      />
+      <p className="text-gray-500 font-bold text-sm mt-2 px-2">Rooms</p>
+      <ScrollArea className="px-2 mt-2 h-1/3">
+        <ul className="text-black ">{roomComp}</ul>
+      </ScrollArea>
+      <Separator className="mb-2 bg-slate-200" />
+      <p className="text-gray-500 font-bold text-sm px-2">Users</p>
+      <ScrollArea className="px-2 mt-2 h-1/3">
+        <ul className="text-black "></ul>
+      </ScrollArea>
+      <Separator className="mb-2 bg-slate-200" />
+      <div className="py-2 absolute bottom-2 w-11/12 flex items-center justify-between px-2 hover:bg-[#0000000f] rounded-lg cursor-pointer bg-white">
         <div className="flex items-center gap-2">
           <Avatar>
             <AvatarImage src={myInfo.user.avatar} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <p className="font-semibold text-gray-600">{myInfo.user.name}</p>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <p className="text-xs font-bold ml-12 mb-2">…</p>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Settings2 size={18} color="#474747" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="text-black bg-white">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   );
 };
-
-export default ChatSideBar;

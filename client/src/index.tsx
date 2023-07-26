@@ -1,23 +1,29 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
-import reportWebVitals from "./reportWebVitals";
-import { ApolloProvider } from "@apollo/client";
 import "./index.css";
-import { BrowserRouter } from "react-router-dom";
-import { client } from "./utils/apolloConfig";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Chat } from "./components/Chat";
+import App from "./App";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: (
+      <main>
+        <App />
+      </main>
+    ),
+  },
+  {
+    path: "chat",
+    element: (
+      <main>
+        <Chat />
+      </main>
+    ),
+  },
+]);
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
-root.render(
-  <React.StrictMode>
-    <ApolloProvider client={client}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ApolloProvider>
-  </React.StrictMode>
-);
-
-reportWebVitals();
+root.render(<RouterProvider router={router} />);
