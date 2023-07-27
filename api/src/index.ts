@@ -54,6 +54,17 @@ const httpServer = createServer(app);
             name,
             description,
           },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            messages: {
+              select: {
+                id: true,
+                body: true,
+              },
+            },
+          },
         });
       },
 
@@ -89,6 +100,33 @@ const httpServer = createServer(app);
     Query: {
       getAllUsers: async () => {
         return await prisma.user.findMany();
+      },
+      getRoomData: async (_: any, args: any) => {
+        const { roomId } = args;
+        return await prisma.room.findUnique({
+          where: {
+            id: roomId,
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            messages: {
+              select: {
+                id: true,
+                body: true,
+                createdAt: true,
+                sender: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        });
       },
       getAllRooms: async () => {
         return await prisma.room.findMany();

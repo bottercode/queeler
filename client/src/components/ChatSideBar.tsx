@@ -55,7 +55,13 @@ export const Chatsidebar = ({
     <p>Error :</p>
   ) : (
     roomsData?.getAllRooms.map((room: Room) => {
-      return <UserCard key={room.id} roomData={room} />;
+      return (
+        <UserCard
+          onSelectRoom={onSelectRoomChat}
+          key={room.id}
+          roomData={room}
+        />
+      );
     })
   );
 

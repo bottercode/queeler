@@ -1,6 +1,6 @@
 import InputEmoji from "react-input-emoji";
 import { Input } from "./ui/Input";
-import { Smile, Send } from "lucide-react";
+import { Smile, SendHorizonalIcon } from "lucide-react";
 import { useState } from "react";
 
 export const MessageInput = () => {
@@ -18,7 +18,7 @@ export const MessageInput = () => {
         onEnter={handleOnEnter}
         placeholder="Type a message"
       />
-      <Send className="text-[#858585] mt-3 ml-1 mr-2" />
+      <SendHorizonalIcon className="text-[#858585] mt-[14px] ml-3 mr-3" />
     </div>
   );
 };

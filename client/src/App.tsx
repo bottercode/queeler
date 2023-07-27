@@ -8,8 +8,9 @@ function App() {
   };
   return (
     <div>
-      <h1>Hello World</h1>
+      <h1>Queeler</h1>
       <Link to="chat">chat</Link>
+      <br></br>
       <button onClick={onHandleGoogleSignin}>SignIn With Google</button>
     </div>
   );
