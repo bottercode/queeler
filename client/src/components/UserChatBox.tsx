@@ -4,29 +4,65 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
 import { gql, useQuery, useSubscription } from "@apollo/client";
 import { Separator } from "./ui/Separator";
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import jwt_decode from "jwt-decode";
+import { useState } from "react";
+import { myInfo } from "../lib/types";
 
-export const ChatBox = ({
-  roomId,
+export const UserChatBox = ({
+  userId,
   email,
 }: {
-  roomId: string;
+  userId: string;
   email: string;
 }) => {
-  const GET_ROOM = gql`
-    query GetRoomData($roomId: String!) {
-      getRoomData(roomId: $roomId) {
+  const [myInfo, setMyInfo] = useState<myInfo>({
+    id: "",
+    name: "Anonymous",
+    email: "",
+    avatar:
+      "https://fastly.picsum.photos/id/379/536/354.jpg?hmac=I4bs_0ZcfxuA6apwsLHEPAqDxBprHAwMwtdoK8oJCOU",
+    exp: 0,
+    iat: 0,
+  });
+  const navigate = useNavigate();
+  console.log(myInfo);
+
+  useEffect(() => {
+    const cookieString = document.cookie;
+    console.log(cookieString);
+    const cookies: any = {};
+    const cookieArray = cookieString.split(";");
+    cookieArray.forEach((cookie) => {
+      const [key, value] = cookie.trim().split("=");
+      cookies[key] = value;
+    });
+    const jwtToken = cookies.cookie;
+    if (jwtToken) {
+      const decoded: myInfo = jwt_decode(jwtToken);
+      setMyInfo(decoded);
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  const GET_USERDATA = gql`
+    query GetUserData($friendId: String!, $myId: String!) {
+      getUserData(friendId: $friendId, myId: $myId) {
         name
+        id
+        email
+        avatar
         messages {
           id
-          body
           createdAt
+          body
           sender {
             name
+            id
             email
           }
         }
-        id
-        description
       }
     }
   `;
@@ -34,47 +70,10 @@ export const ChatBox = ({
   const {
     loading,
     error,
-    data: roomData,
-    subscribeToMore,
-  } = useQuery(GET_ROOM, {
-    variables: { roomId },
+    data: userData,
+  } = useQuery(GET_USERDATA, {
+    variables: { friendId: userId, myId: myInfo.id },
   });
-
-  useEffect(() => {
-    const GET_MESSAGE = gql`
-      subscription Subscription($roomId: String!) {
-        messageSent(roomId: $roomId) {
-          id
-          createdAt
-          body
-          sender {
-            name
-            email
-          }
-        }
-      }
-    `;
-
-    const subscribeToNewMessage = () => {
-      subscribeToMore({
-        document: GET_MESSAGE,
-        variables: { roomId },
-        updateQuery: (prev, { subscriptionData }) => {
-          console.log(subscriptionData);
-          if (!subscriptionData.data) return prev;
-          const newMessage = subscriptionData.data.messageSent;
-          return Object.assign({}, prev, {
-            getRoomData: {
-              ...prev.getRoomData,
-              messages: [...prev.getRoomData.messages, newMessage],
-            },
-          });
-        },
-      });
-    };
-
-    subscribeToNewMessage();
-  }, [roomId]);
 
   return (
     <main className="w-[calc(100%-320px)] flex justify-center items-center h-screen">
@@ -92,10 +91,10 @@ export const ChatBox = ({
             ) : (
               <>
                 <p className="font-semibold text-sm line-clamp-1">
-                  {roomData?.getRoomData.name}
+                  {userData?.getUserData.name}
                 </p>
                 <p className="text-xs line-clamp-1">
-                  {roomData?.getRoomData.description}
+                  {userData?.getUserData.email}
                 </p>
               </>
             )}
@@ -108,7 +107,7 @@ export const ChatBox = ({
           <p className="text-black">Error :</p>
         ) : (
           <MessageContainer
-            messages={roomData?.getRoomData.messages}
+            messages={userData?.getUserData.messages}
             myEmail={email}
           />
         )}

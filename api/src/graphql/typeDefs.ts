@@ -15,6 +15,14 @@ export const typeDefs = gql`
     createdAt: String
   }
 
+  type UserData {
+    id: String
+    name: String
+    email: String
+    avatar: String
+    messages: [Message]
+  }
+
   type Room {
     id: ID
     name: String
@@ -26,6 +34,7 @@ export const typeDefs = gql`
     getAllUsers: [User!]!
     getRoomData(roomId: String!): Room
     getAllRooms: [Room!]!
+    getUserData(friendId: String!, myId: String!): UserData
   }
 
   type Subscription {

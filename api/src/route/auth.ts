@@ -1,5 +1,5 @@
-import passport from "passport";
 import express from "express";
+import passport from "passport";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
@@ -18,9 +18,10 @@ router.get(
     try {
       const user = await prisma.user.findUnique({
         where: { email: req.user.emails[0].value },
+        select: { id: true, email: true, name: true, avatar: true },
       });
       if (user) {
-        const token = jwt.sign({ user: user }, `${process.env.JWT_SECRET}`, {
+        const token = jwt.sign(user, `${process.env.JWT_SECRET}`, {
           expiresIn: "7days",
         });
         res.cookie("cookie", token); // Sets cookie
@@ -31,9 +32,10 @@ router.get(
             name: req.user.displayName,
             avatar: req.user.photos[0].value,
           },
+          select: { id: true, email: true, name: true, avatar: true },
         });
         console.log(newUser);
-        const token = jwt.sign({ user: newUser }, `${process.env.JWT_SECRET}`, {
+        const token = jwt.sign(newUser, `${process.env.JWT_SECRET}`, {
           expiresIn: "7days",
         });
         res.cookie("cookie", token); // Sets cookie
@@ -45,4 +47,5 @@ router.get(
     res.redirect("http://localhost:3000/chat");
   }
 );
-module.exports = router;
+
+export default router;

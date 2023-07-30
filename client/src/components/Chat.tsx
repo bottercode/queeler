@@ -1,11 +1,15 @@
 import { ChatBox } from "./ChatBox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chatsidebar } from "./ChatSideBar";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { split, HttpLink } from "@apollo/client";
+import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
-import { getMainDefinition } from "@apollo/client/utilities";
-import { split, HttpLink } from "@apollo/client";
+import { ChatTypes, myInfo } from "../lib/types";
+import jwt_decode from "jwt-decode";
+import { UserChatBox } from "./UserChatBox";
+import { useNavigate } from "react-router";
 
 const httpLink = new HttpLink({
   uri: "http://localhost:4000/graphql",
@@ -13,7 +17,7 @@ const httpLink = new HttpLink({
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: "ws://localhost:4000/subscriptions",
+    url: "ws://localhost:4000/graphql/subscription",
   })
 );
 
@@ -30,24 +34,69 @@ const splitLink = split(
 );
 
 const client = new ApolloClient({
-  // uri: "http://localhost:4000/graphql/",
   link: splitLink,
   cache: new InMemoryCache(),
 });
-
 export const Chat = () => {
-  const [roomId, setRoomId] = useState<string | undefined>();
+  const [chat, setChat] = useState<ChatTypes>({ type: "none", id: "" });
+  const [myInfo, setMyInfo] = useState<myInfo>({
+    id: "",
+    name: "Anonymous",
+    email: "",
+    avatar:
+      "https://fastly.picsum.photos/id/379/536/354.jpg?hmac=I4bs_0ZcfxuA6apwsLHEPAqDxBprHAwMwtdoK8oJCOU",
+    exp: 0,
+    iat: 0,
+  });
 
-  console.log(roomId);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const cookieString = document.cookie;
+    console.log(cookieString);
+    const cookies: any = {};
+    const cookieArray = cookieString.split(";");
+    cookieArray.forEach((cookie) => {
+      const [key, value] = cookie.trim().split("=");
+      cookies[key] = value;
+    });
+    const jwtToken = cookies.cookie;
+    if (jwtToken) {
+      const decoded: myInfo = jwt_decode(jwtToken);
+      setMyInfo(decoded);
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  console.log(chat);
 
   const onSelectRoom = (roomId: string) => {
-    setRoomId(roomId);
+    setChat({ type: "room", id: roomId });
   };
+
+  const onSelectUser = (userId: string) => {
+    setChat({ type: "user", id: userId });
+  };
+
+  const chatComp =
+    chat.type === "none" ? (
+      <p>Select a chat</p>
+    ) : chat.type === "room" ? (
+      <ChatBox email={myInfo.email} roomId={chat.id} />
+    ) : (
+      <UserChatBox email={myInfo.email} userId={chat.id} />
+    );
+
   return (
     <ApolloProvider client={client}>
       <div className="flex">
-        <ChatBox roomId={roomId} />
-        <Chatsidebar onSelectRoomChat={onSelectRoom} />
+        {chatComp}
+        <Chatsidebar
+          myProfile={myInfo}
+          onSelectUserChat={onSelectUser}
+          onSelectRoomChat={onSelectRoom}
+        />
       </div>
     </ApolloProvider>
   );

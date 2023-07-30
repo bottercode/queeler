@@ -1,58 +1,56 @@
-import { CheckCheck } from "lucide-react";
 import { Card, CardContent } from "./ui/Card";
 import { ScrollArea } from "./ui/ScrollArea";
-export const MessageContainer = ({ messageData }: { messageData: any }) => {
+import { formatTime } from "../lib/utils";
+import { Message } from "../lib/types";
+export const MessageContainer = ({
+  messages,
+  myEmail,
+}: {
+  messages: Message[];
+  myEmail: string;
+}) => {
+  console.log(messages);
   return (
     <ScrollArea className="h-[calc(100%-110px)] px-4">
-      {messageData.map((message: any) => {
-        if (message.sender.email === "jeeinfo69@gmail.com") {
-          return <MyMessage message={message} key={message.id} />;
-        } else {
-          return <SenderMessage message={message} key={message.id} />;
+      {messages.map((message: Message) => {
+        if (message.sender.email === myEmail) {
+          return <MyMessage key={message.id} messageBody={message} />;
         }
+        return <SenderMessage key={message.id} messageBody={message} />;
       })}
     </ScrollArea>
   );
 };
 
-export const SenderMessage = ({ message }: { message: any }) => {
-  const timestamp = parseInt(message.createdAt);
+export const SenderMessage = ({ messageBody }: { messageBody: Message }) => {
+  const timestamp = parseInt(messageBody.createdAt);
   const date = new Date(timestamp);
-  const formattedTime = date.toLocaleString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  });
-
+  const resultTime = formatTime(date.toISOString());
   return (
-    <Card className="bg-white h-fit max-w-xs w-full mb-1 mt-1">
+    <Card className="bg-white h-fit max-w-xs w-fit px-2 mb-1">
       <CardContent className="px-2 py-1">
-        <p className="text-xs text-black">{message.body}</p>
+        <p className="text-[0.5rem] text-gray-600">{messageBody.sender.name}</p>
+        <p className="text-xs text-black">{messageBody.body}</p>
         <div className="flex justify-end items-center gap-1">
-          <p className="text-[0.5rem] text-gray-600">{formattedTime}</p>
+          <p className="text-[0.5rem] text-gray-600">{resultTime}</p>
         </div>
       </CardContent>
     </Card>
   );
 };
 
-export const MyMessage = ({ message }: { message: any }) => {
-  const timestamp = parseInt(message.createdAt);
+export const MyMessage = ({ messageBody }: { messageBody: Message }) => {
+  const timestamp = parseInt(messageBody.createdAt);
   const date = new Date(timestamp);
-  const formattedTime = date.toLocaleString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  });
-
+  const resultTime = formatTime(date.toISOString());
   return (
     <div className="w-full flex justify-end">
-      <Card className="bg-black h-fit max-w-xs w-full mb-1">
+      <Card className="bg-black h-fit max-w-xs w-fit px-2 mb-1">
         <CardContent className="px-2 py-1">
-          <p className="text-xs">{message.body}</p>
+          <p className="text-[0.5rem] text-gray-300">You</p>
+          <p className="text-xs">{messageBody.body}</p>
           <div className="flex justify-end items-center gap-1">
-            <p className="text-[0.5rem] text-gray-300">{formattedTime}</p>
-            <CheckCheck size="10px" className="text-gray-300" />
+            <p className="text-[0.5rem] text-gray-300">{resultTime}</p>
           </div>
         </CardContent>
       </Card>

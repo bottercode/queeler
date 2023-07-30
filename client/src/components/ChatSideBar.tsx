@@ -1,9 +1,8 @@
 import { Input } from "./ui/Input";
+import { Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
-import { useEffect, useState } from "react";
-import jwt_decode from "jwt-decode";
 import { Room, myInfo } from "../lib/types";
 import {
   DropdownMenu,
@@ -14,26 +13,28 @@ import {
   DropdownMenuTrigger,
 } from "./ui/DropdownMenu";
 import { UserCard } from "./User";
-import { useNavigate } from "react-router";
 import { gql, useQuery } from "@apollo/client";
-import { Settings2 } from "lucide-react";
 
 export const Chatsidebar = ({
+  myProfile,
   onSelectRoomChat,
+  onSelectUserChat,
 }: {
   onSelectRoomChat: (roomId: string) => void;
+  onSelectUserChat: (roomId: string) => void;
+  myProfile: myInfo;
 }) => {
-  const [myInfo, setMyInfo] = useState<myInfo>({
-    user: {
-      id: "",
-      name: "Anonymous",
-      email: "",
-      avatar:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Anonymous_emblem.svg/240px-Anonymous_emblem.svg.png",
-    },
-    exp: 0,
-    iat: 0,
-  });
+  const GET_USERS = gql`
+    query GetAllUsers {
+      getAllUsers {
+        name
+        id
+        email
+        avatar
+      }
+    }
+  `;
+
   const GET_ROOM = gql`
     query GetAllRooms {
       getAllRooms {
@@ -49,6 +50,25 @@ export const Chatsidebar = ({
     data: roomsData,
   } = useQuery(GET_ROOM);
 
+  const {
+    loading: usersLoading,
+    error: usersError,
+    data: usersData,
+  } = useQuery(GET_USERS);
+
+  const userComp = usersLoading ? (
+    <p>Loading...</p>
+  ) : usersError ? (
+    <p>Error :</p>
+  ) : (
+    usersData?.getAllUsers.map((user: any) => {
+      if (user.id === myProfile.id) return null;
+      return (
+        <UserCard onSelect={onSelectUserChat} key={user.id} userData={user} />
+      );
+    })
+  );
+
   const roomComp = roomsLoading ? (
     <p>Loading...</p>
   ) : roomsError ? (
@@ -56,35 +76,10 @@ export const Chatsidebar = ({
   ) : (
     roomsData?.getAllRooms.map((room: Room) => {
       return (
-        <UserCard
-          onSelectRoom={onSelectRoomChat}
-          key={room.id}
-          roomData={room}
-        />
+        <UserCard onSelect={onSelectRoomChat} key={room.id} roomData={room} />
       );
     })
   );
-
-  const navigate = useNavigate();
-  console.log(myInfo);
-
-  useEffect(() => {
-    const cookieString = document.cookie;
-    console.log(cookieString);
-    const cookies: any = {};
-    const cookieArray = cookieString.split(";");
-    cookieArray.forEach((cookie) => {
-      const [key, value] = cookie.trim().split("=");
-      cookies[key] = value;
-    });
-    const jwtToken = cookies.cookie;
-    if (jwtToken) {
-      const decoded: myInfo = jwt_decode(jwtToken);
-      setMyInfo(decoded);
-    } else {
-      navigate("/");
-    }
-  }, [navigate]);
 
   return (
     <aside className="w-80 bg-white h-screen rounded-l-3xl py-2 px-4 relative">
@@ -100,20 +95,20 @@ export const Chatsidebar = ({
       <Separator className="mb-2 bg-slate-200" />
       <p className="text-gray-500 font-bold text-sm px-2">Users</p>
       <ScrollArea className="px-2 mt-2 h-1/3">
-        <ul className="text-black "></ul>
+        <ul className="text-black ">{userComp}</ul>
       </ScrollArea>
       <Separator className="mb-2 bg-slate-200" />
       <div className="py-2 absolute bottom-2 w-11/12 flex items-center justify-between px-2 hover:bg-[#0000000f] rounded-lg cursor-pointer bg-white">
         <div className="flex items-center gap-2">
           <Avatar>
-            <AvatarImage src={myInfo.user.avatar} />
+            <AvatarImage src={myProfile.avatar} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <p className="font-semibold text-gray-600">{myInfo.user.name}</p>
+          <p className="font-semibold text-gray-600">{myProfile.name}</p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <Settings2 size={18} color="#474747" />
+            <Settings size={18} color="#474747" />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="text-black bg-white">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
