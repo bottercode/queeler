@@ -1,17 +1,10 @@
 import React from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import LandingPage from "./components/LandingPage";
 
 function App() {
-  const onHandleGoogleSignin = () => {
-    console.log("google signin");
-    window.open("http://localhost:4000/auth/google", "_self");
-  };
   return (
     <div>
-      <h1>Queeler</h1>
-      <Link to="chat">chat</Link>
-      <br></br>
-      <button onClick={onHandleGoogleSignin}>SignIn With Google</button>
+      <LandingPage />
     </div>
   );
 }

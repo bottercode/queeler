@@ -59,7 +59,7 @@ export const MessageInput = ({
         onClick={onSendMessage}
         color="#474747"
         size="20px"
-        className="text-[#858585] mt-[14px] ml-3 mr-3"
+        className="text-[#ededed] mt-[14px] h-[24px] ml-3 mr-3"
       />
     </div>
   );
