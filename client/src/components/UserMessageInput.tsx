@@ -1,14 +1,14 @@
 import InputEmoji from "react-input-emoji";
-import { SendHorizonal } from "lucide-react";
+import { SendHorizonalIcon } from "lucide-react";
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 
-export const MessageInput = ({
+export const UserMessageInput = ({
   myId,
-  roomId,
+  friendId,
 }: {
   myId: string;
-  roomId: string;
+  friendId: string;
 }) => {
   const [text, setText] = useState<string>("");
 
@@ -17,28 +17,31 @@ export const MessageInput = ({
   }
 
   const SEND_MESSAGE = gql`
-    mutation CreateMessage(
+    mutation Mutation(
       $body: String!
-      $roomId: String!
+      $receiverId: String!
       $senderId: String!
     ) {
-      createMessage(body: $body, roomId: $roomId, senderId: $senderId) {
-        body
-        createdAt
+      createMessagebyUser(
+        body: $body
+        receiverId: $receiverId
+        senderId: $senderId
+      ) {
         id
+        createdAt
+        body
       }
     }
   `;
 
   const [sendMessage, { data, loading, error }] = useMutation(SEND_MESSAGE);
-
   console.log(data);
 
   const onSendMessage = () => {
     sendMessage({
       variables: {
         body: text,
-        roomId: roomId,
+        receiverId: friendId,
         senderId: myId,
       },
     });
@@ -55,7 +58,7 @@ export const MessageInput = ({
         placeholder="Type a message"
       />
 
-      <SendHorizonal
+      <SendHorizonalIcon
         onClick={onSendMessage}
         color="#474747"
         size="20px"

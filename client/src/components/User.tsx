@@ -10,7 +10,6 @@ export const UserCard = ({
   onSelect: (roomId: string) => void;
   userData?: any;
 }) => {
-  // console.log(roomData);
   const name = roomData ? roomData.name : userData.name;
   const description = roomData ? roomData.description : userData.email;
   return (
