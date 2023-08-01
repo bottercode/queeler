@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
     "start": "npm run compile && node ./dist/index.js",
+    "postinstall": "npx prisma generate --data-proxy",
     "dev": "nodemon --watch ./src --exec \"npm run start\""
   },
   "keywords": [],
