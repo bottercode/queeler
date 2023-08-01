@@ -15,6 +15,7 @@ import {
 import { UserCard } from "./User";
 import { gql, useQuery } from "@apollo/client";
 import { SideBarLoading } from "./SideBarLoading";
+import { useNavigate } from "react-router";
 
 export const Chatsidebar = ({
   myProfile,
@@ -25,6 +26,8 @@ export const Chatsidebar = ({
   onSelectUserChat: (roomId: string) => void;
   myProfile: myInfo;
 }) => {
+  const navigate = useNavigate();
+
   const GET_USERS = gql`
     query GetAllUsers {
       getAllUsers {
@@ -115,11 +118,22 @@ export const Chatsidebar = ({
           <DropdownMenuTrigger>
             <Settings size={18} color="#474747" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="text-black bg-white">
+          <DropdownMenuContent className="bg-white">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer text-black"
+              onClick={() => {
+                var Cookies = document.cookie.split(";");
+                for (var i = 0; i < Cookies.length; i++) {
+                  document.cookie =
+                    Cookies[i] + "=; expires=" + new Date(0).toUTCString();
+                }
+                navigate("/");
+              }}
+            >
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

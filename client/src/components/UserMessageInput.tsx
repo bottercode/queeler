@@ -34,10 +34,11 @@ export const UserMessageInput = ({
     }
   `;
 
-  const [sendMessage, { data, loading, error }] = useMutation(SEND_MESSAGE);
+  const [sendMessage, { data }] = useMutation(SEND_MESSAGE);
   console.log(data);
 
   const onSendMessage = () => {
+    if (text.trim() === "") return;
     sendMessage({
       variables: {
         body: text,

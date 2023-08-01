@@ -39,7 +39,7 @@ const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
 });
-// chat -> 'akjhsxkahskajk' to { type: 'room', id: 'akjhsxkahskajk' } | { type: 'user', id: 'akjhsxkahskajk'}
+
 export const Chat = () => {
   const [chat, setChat] = useState<ChatTypes>({ type: "none", id: "" });
   const [myInfo, setMyInfo] = useState<myInfo>({
@@ -71,8 +71,6 @@ export const Chat = () => {
       navigate("/");
     }
   }, [navigate]);
-
-  console.log(chat);
 
   const onSelectRoom = (roomId: string) => {
     setChat({ type: "room", id: roomId });

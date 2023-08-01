@@ -176,7 +176,7 @@ const pubsub = new graphql_subscriptions_1.PubSub();
             },
             createMessagebyUser: async (_, args, context) => {
                 const { body, receiverId, senderId } = args;
-                return await exports.prisma.message.create({
+                const messageResponse = await exports.prisma.message.create({
                     data: {
                         body,
                         receiverId,
@@ -202,6 +202,10 @@ const pubsub = new graphql_subscriptions_1.PubSub();
                         },
                     },
                 });
+                pubsub.publish(`messageSentToUser ${receiverId}`, {
+                    messageSentToUser: messageResponse,
+                });
+                return messageResponse;
             },
         },
         Subscription: {
@@ -209,6 +213,12 @@ const pubsub = new graphql_subscriptions_1.PubSub();
                 subscribe: async (_, args, context) => {
                     const { roomId } = args;
                     return pubsub.asyncIterator(`messageSent ${roomId}`);
+                },
+            },
+            messageSentToUser: {
+                subscribe: async (_, args, context) => {
+                    const { receiverId } = args;
+                    return pubsub.asyncIterator(`messageSentToUser ${receiverId}`);
                 },
             },
         },

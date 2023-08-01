@@ -37,12 +37,6 @@ export const UserChatBox = ({
     }
   `;
 
-  // const { data, loading: subscriptionloading } = useSubscription(GET_MESSAGE, {
-  //   variables: { roomId },
-  // });
-
-  // console.log(data);
-
   const {
     loading,
     error,
@@ -50,6 +44,7 @@ export const UserChatBox = ({
     subscribeToMore,
   } = useQuery(GET_USERDATA, {
     variables: { friendId: userId, myId: myId },
+    pollInterval: 1000,
   });
 
   console.log(userData);
@@ -69,28 +64,19 @@ export const UserChatBox = ({
         }
       }
     `;
-
-    const userSubscription = subscribeToMore({
-      document: GET_MESSAGE,
-      variables: { receiverId: userId },
-      updateQuery: (prev, { subscriptionData }) => {
-        console.log(subscriptionData);
-        if (!subscriptionData.data) return prev;
-        const newMessage = subscriptionData.data.messageSentToUser;
-        return Object.assign({}, prev, {
-          getUserData: {
-            ...prev.getUserData,
-            messages: [...prev.getUserData.messages, newMessage],
-          },
-        });
-      },
-    });
     const mySubscription = subscribeToMore({
       document: GET_MESSAGE,
       variables: { receiverId: myId },
       updateQuery: (prev, { subscriptionData }) => {
-        console.log(subscriptionData);
-        if (!subscriptionData.data) return prev;
+        console.log(userId, subscriptionData, myId);
+        if (
+          !subscriptionData.data ||
+          subscriptionData.data.messageSentToUser.sender.id !== userId
+        ) {
+          if (subscriptionData.data.messageSentToUser.sender.id !== myId) {
+            return prev;
+          }
+        }
         const newMessage = subscriptionData.data.messageSentToUser;
         return Object.assign({}, prev, {
           getUserData: {
@@ -102,10 +88,9 @@ export const UserChatBox = ({
     });
 
     return () => {
-      userSubscription();
       mySubscription();
     };
-  }, [userId]);
+  }, [myId, userId]);
 
   return (
     <main className="w-[calc(100%-320px)] flex justify-center items-center h-screen">
@@ -115,18 +100,23 @@ export const UserChatBox = ({
             <UserCardLoading />
           </div>
         ) : error ? (
-          <p className="text-black">Error :</p>
+          <p className="text-sm rounded-t-3xl text-center font-bold py-4 bg-white text-red-500">
+            Oops something isn't right
+          </p>
         ) : (
           <ChatHeader
             name={userData?.getUserData.name}
             description={userData?.getUserData.email}
+            avatar={userData?.getUserData.avatar}
           />
         )}
         <Separator className="bg-gray-300" />
         {loading ? (
           <MessageLoading />
         ) : error ? (
-          <p className="text-black">Error :</p>
+          <p className="text-sm text-center font-bold text-red-500 mt-4">
+            Oops something isn't right
+          </p>
         ) : (
           <MessageContainer
             messages={userData?.getUserData.messages}
