@@ -216,10 +216,17 @@ const pubsub = new graphql_subscriptions_1.PubSub();
                 },
             },
             messageSentToUser: {
-                subscribe: async (_, args, context) => {
+                subscribe: (0, graphql_subscriptions_1.withFilter)((_, args, context) => {
+                    return pubsub.asyncIterator(`messageSentToUser`);
+                }, async (payload, args) => {
                     const { receiverId } = args;
-                    return pubsub.asyncIterator(`messageSentToUser ${receiverId}`);
-                },
+                    const { messageSentToUser } = payload;
+                    if (messageSentToUser.receiver.id === receiverId ||
+                        messageSentToUser.sender.id === receiverId) {
+                        return true;
+                    }
+                    return false;
+                }),
             },
         },
     };
