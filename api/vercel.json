@@ -1,8 +1,9 @@
 {
   "version": 2,
-  "builds": [{ "src": "index.ts", "use": "@vercel/node" }],
+  "devCommand": "npm run dev",
+  "builds": [{ "src": "src/index.ts", "use": "@vercel/node" }],
   "routes": [
     { "src": "/graphql/subscription", "dest": "index.ts" },
-    { "src": "/(.*)", "dest": "index.ts" }
+    { "src": "/(.*)", "dest": "src/index.ts" }
   ]
 }
