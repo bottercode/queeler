@@ -8,7 +8,7 @@
     "compile": "tsc",
     "build": "npm run compile && node ./dist/index.js",
     "postinstall": "npx prisma generate --data-proxy",
-    "dev": "npm run compile && node ./dist/index.js",
+    "dev": "npm run compile && prisma generate --no-engine && node ./dist/index.js",
     "start": "nodemon --watch ./src --exec \"npm run dev\""
   },
   "keywords": [],
@@ -18,7 +18,7 @@
     "@apollo/server": "^4.7.5",
     "@graphql-tools/load-files": "^7.0.0",
     "@graphql-tools/schema": "^10.0.0",
-    "@prisma/client": "^5.2.0",
+    "@prisma/client": "^5.5.2",
     "@prisma/extension-accelerate": "^0.6.2",
     "apollo-server-express": "^3.12.0",
     "cookie-session": "^2.0.0",
@@ -46,7 +46,7 @@
     "@types/node": "^20.4.2",
     "@types/passport": "^1.0.12",
     "@types/passport-google-oauth20": "^2.0.11",
-    "prisma": "^5.0.0",
+    "prisma": "^5.5.2",
     "typescript": "^5.1.6"
   }
 }
