@@ -1,0 +1,9 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "description": "GraphQL Express and React app on Render",
+  "scripts": {
+    "client": "cd client && npm install && npm run start",
+    "api": "cd api && npm install && npm run dev"
+  }
+}
