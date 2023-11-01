@@ -1,1 +1,2 @@
-web: npm run start-server
+web: npm run dev --prefix api
+client: npm start --prefix client
